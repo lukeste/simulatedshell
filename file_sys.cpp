@@ -11,8 +11,8 @@ size_t inode::next_inode_num = 1;
 inode_state::inode_state() {
     root = make_shared<inode>(file_type::DIRECTORY_TYPE);
     cwd = root;
-    root->contents->get_dirents().insert(pair<string, inode_ptr>(".", root));
-    root->contents->get_dirents().insert(pair<string, inode_ptr>("..", root));
+    root->contents->get_dirents().emplace(".", root);
+    root->contents->get_dirents().emplace("..", root);
 }
 
 const string& inode_state::get_prompt() const { return prompt; };
