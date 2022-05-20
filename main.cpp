@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <string>
 #include <unistd.h>
 #include <utility>
 
@@ -10,7 +9,7 @@ using namespace std;
 #include "file_sys.h"
 #include "util.h"
 
-int main(int argc, char** argv) {
+int main(int, char** argv) {
     cout << boolalpha; // print false or true instead of 0 or 1.
     cerr << boolalpha;
     cout << argv[0] << " build " << __DATE__ << " " << __TIME__ << endl;
