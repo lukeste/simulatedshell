@@ -60,7 +60,7 @@ base_file_ptr inode::get_contents() const { return contents; }
 
 file_error::file_error(const string& what) : runtime_error(what) {}
 
-// function definitions so linker doesn't complain
+// function definitions so compiler doesn't complain
 const vector<string>& base_file::readfile() const {
     throw file_error("is a " + error_file_type());
 }
@@ -99,7 +99,7 @@ size_t plain_file::size() const {
 const vector<string>& plain_file::readfile() const { return data; }
 
 void plain_file::writefile(const vector<string>& new_data) {
-    // i = 2 b/c new_data[0]==cmd, new_data[1]==filename
+    // new_data[0]==cmd, new_data[1]==filename
     for (size_t i = 2; i < new_data.size(); ++i)
         data.push_back(new_data[i]);
 }
@@ -108,10 +108,20 @@ size_t directory::size() const { return dirents.size(); }
 
 void directory::remove(const string& filename, bool recursive) {
     const auto it = dirents.find(filename);
-    if (it == dirents.end())
-        throw file_error("rm: " + filename + ": file does not exist");
-    else
-        dirents.erase(it); 
+    if (it == dirents.end()) {
+        throw file_error("rm: " + filename + ": No such file or directory");
+    } else {
+        try {
+            it->second->get_contents()
+                ->get_dirents(); // throws file_error if not directory type
+            if (!recursive) {
+                cerr << "rm: " << filename << ": is a directory" << endl;
+                return;
+            }
+        } catch (file_error&) {
+        }
+    }
+    dirents.erase(it);
 }
 
 inode_ptr directory::mkdir(const string& dirname) {

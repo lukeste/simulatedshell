@@ -66,9 +66,8 @@ class base_file {
 
   public:
     virtual ~base_file() = default;
-    // don't want copy operators for base class
-    base_file(const base_file&) = delete;
-    base_file& operator=(const base_file&) = delete;
+    base_file(const base_file&) = delete; // don't want copy operators
+    base_file& operator=(const base_file&) = delete; // for base class
     virtual size_t size() const = 0;
     virtual const vector<string>& readfile() const;
     virtual void writefile(const vector<string>&);

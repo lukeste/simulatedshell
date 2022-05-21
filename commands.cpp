@@ -163,7 +163,7 @@ void fn_rm(inode_state& state, const vector<string>& words) {
     if (words.size() == 1)
         throw command_error(words[0] + ": must specify a pathname");
     if (words.size() == 2) {
-        vector<string> path = split(words[1], "/");
+        const vector<string> path = split(words[1], "/");
         if (path[path.size() - 1] == "." || path[path.size() - 1] == "..")
             throw command_error(words[0] +
                                 ": \".\" and \"..\" may not be removed");
@@ -175,5 +175,3 @@ void fn_rm(inode_state& state, const vector<string>& words) {
         throw command_error(words[0] + ": too many arguments");
     }
 }
-
-void fn_rmr(inode_state& state, const vector<string>& words) {}
