@@ -25,7 +25,7 @@ class inode_state {
   private:
     inode_ptr root{nullptr};
     inode_ptr cwd{nullptr};
-    string prompt{"~ "};
+    string prompt{"$ "};
     vector<string> path;
 
   public:
@@ -72,7 +72,7 @@ class base_file {
     virtual size_t size() const = 0;
     virtual const vector<string>& readfile() const;
     virtual void writefile(const vector<string>&);
-    virtual void remove(const string&);
+    virtual void remove(const string&, bool);
     virtual inode_ptr mkdir(const string&);
     virtual inode_ptr mkfile(const string&);
     virtual map<string, inode_ptr>& get_dirents();
@@ -100,7 +100,7 @@ class directory : public base_file {
 
   public:
     virtual size_t size() const override;
-    virtual void remove(const string& filename) override;
+    virtual void remove(const string& filename, bool recursive) override;
     virtual inode_ptr mkdir(const string& dirname) override;
     virtual inode_ptr mkfile(const string& filename) override;
     virtual map<string, inode_ptr>& get_dirents() override;

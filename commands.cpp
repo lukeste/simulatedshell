@@ -7,10 +7,7 @@ const cmd_hash cmd_map{
     {"rm", fn_rm},       {"rmr", fn_rmr}};
 
 cmd_fn find_cmd_fn(const string& cmd) {
-    // Note: value_type is pair<const key_type, mapped_type>
-    // So: iterator->first is key_type (string)
-    // So: iterator->second is mapped_type (command_fn)
-    const auto result{cmd_map.find(cmd)};
+    const auto result = cmd_map.find(cmd);
     if (result == cmd_map.end()) {
         throw command_error(cmd + ": no such command");
     }
@@ -49,7 +46,7 @@ void fn_cd(inode_state& state, const vector<string>& words) {
         state.set_cwd(dir);
         if (words[1] == "..")
             state.cwd_pop(false);
-        else
+        else if (words[1] != ".") // don't push '.' to cwd
             state.cwd_push(words[1]);
     } catch (out_of_range&) {
         throw command_error(words[0] + ": " + words[1] +
@@ -57,15 +54,16 @@ void fn_cd(inode_state& state, const vector<string>& words) {
     }
 }
 
-void fn_echo(inode_state& state, const vector<string>& words) {
+void fn_echo(inode_state&, const vector<string>& words) {
     string space = "";
     for (auto it = words.cbegin() + 1; it != words.cend(); ++it) {
         cout << space << *it;
+        space = " ";
     }
     cout << endl;
 }
 
-static void print_ls(string path, map<string, inode_ptr> dir) {
+static void print_ls(const string& path, map<string, inode_ptr> dir) {
     if (path.size() == 0)
         cout << "/:" << endl;
     else
@@ -139,6 +137,8 @@ void fn_lsr(inode_state& state, const vector<string>& words) {
 }
 
 void fn_make(inode_state& state, const vector<string>& words) {
+    if (words.size() == 1)
+        throw command_error(words[0] + ": must specify filename");
     inode_ptr new_file = state.get_cwd()->get_contents()->mkfile(words[1]);
     new_file->get_contents()->writefile(words);
 }
@@ -155,20 +155,24 @@ void fn_prompt(inode_state& state, const vector<string>& words) {
     state.set_prompt(new_prompt);
 }
 
-void fn_pwd(inode_state& state, const vector<string>& words) {
+void fn_pwd(inode_state& state, const vector<string>&) {
     cout << state.cwd_str() << endl;
 }
 
 void fn_rm(inode_state& state, const vector<string>& words) {
     if (words.size() == 1)
-        throw command_error(words[0] + ": must specify a filename");
-    try {
-        inode_ptr file =
-            state.get_cwd()->get_contents()->get_dirents().at(words[1]);
-        file->get_contents()->remove(words[1]);
-    } catch (out_of_range&) {
-        throw command_error(words[0] + ": " + words[1] +
-                            ": file does not exist");
+        throw command_error(words[0] + ": must specify a pathname");
+    if (words.size() == 2) {
+        vector<string> path = split(words[1], "/");
+        if (path[path.size() - 1] == "." || path[path.size() - 1] == "..")
+            throw command_error(words[0] +
+                                ": \".\" and \"..\" may not be removed");
+        inode_ptr curr = state.get_cwd();
+        for (size_t i = 0; i < path.size() - 1; ++i)
+            curr = curr->get_contents()->get_dirents().at(path[i]);
+        curr->get_contents()->remove(path[path.size() - 1], false);
+    } else {
+        throw command_error(words[0] + ": too many arguments");
     }
 }
 

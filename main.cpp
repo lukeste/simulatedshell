@@ -25,7 +25,6 @@ int main(int, char** argv) {
                     cout << endl;
                     break;
                 }
-
                 // split the line into words and lookup the function
                 vector<string> words = split(line, " \t");
                 if (words.at(0) == "#")

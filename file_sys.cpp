@@ -38,7 +38,7 @@ const string inode_state::cwd_str() const {
     string full_path = "";
     for (const string& piece : path)
         full_path += "/" + piece;
-    return path.size() > 0 ? "/" : full_path;
+    return path.size() == 0 ? "/" : full_path;
 }
 
 inode::inode(file_type type) : inode_num(next_inode_num++) {
@@ -69,7 +69,7 @@ void base_file::writefile(const vector<string>&) {
     throw file_error("is a " + error_file_type());
 }
 
-void base_file::remove(const string&) {
+void base_file::remove(const string&, bool) {
     throw file_error("is a " + error_file_type());
 }
 
@@ -106,13 +106,19 @@ void plain_file::writefile(const vector<string>& new_data) {
 
 size_t directory::size() const { return dirents.size(); }
 
-void directory::remove(const string& filename) { dirents.erase(filename); }
+void directory::remove(const string& filename, bool recursive) {
+    const auto it = dirents.find(filename);
+    if (it == dirents.end())
+        throw file_error("rm: " + filename + ": file does not exist");
+    else
+        dirents.erase(it); 
+}
 
 inode_ptr directory::mkdir(const string& dirname) {
     inode_ptr new_dir = make_shared<inode>(file_type::DIRECTORY_TYPE);
     dirents.emplace(dirname, new_dir);
     new_dir->get_contents()->get_dirents().emplace(".", new_dir);
-    new_dir->get_contents()->get_dirents().emplace("..", new_dir);
+    new_dir->get_contents()->get_dirents().emplace("..", dirents.at("."));
     return new_dir;
 }
 
