@@ -18,6 +18,7 @@ class plain_file;
 class directory;
 using inode_ptr = shared_ptr<inode>;
 using base_file_ptr = shared_ptr<base_file>;
+using ptr_map = map<string, inode_ptr>;
 
 class inode_state {
     friend class inode;
@@ -71,10 +72,10 @@ class base_file {
     virtual size_t size() const = 0;
     virtual const vector<string>& readfile() const;
     virtual void writefile(const vector<string>&);
-    virtual void remove(const string&, bool);
+    virtual void remove(const ptr_map::iterator, bool);
     virtual inode_ptr mkdir(const string&);
     virtual inode_ptr mkfile(const string&);
-    virtual map<string, inode_ptr>& get_dirents();
+    virtual ptr_map& get_dirents();
 };
 
 class plain_file : public base_file {
@@ -91,7 +92,7 @@ class plain_file : public base_file {
 
 class directory : public base_file {
   private:
-    map<string, inode_ptr> dirents;
+    ptr_map dirents;
     virtual const string& error_file_type() const override {
         static const string file_type = "directory";
         return file_type;
@@ -99,10 +100,11 @@ class directory : public base_file {
 
   public:
     virtual size_t size() const override;
-    virtual void remove(const string& filename, bool recursive) override;
+    virtual void remove(const ptr_map::iterator filename,
+                        bool recursive) override;
     virtual inode_ptr mkdir(const string& dirname) override;
     virtual inode_ptr mkfile(const string& filename) override;
-    virtual map<string, inode_ptr>& get_dirents() override;
+    virtual ptr_map& get_dirents() override;
 };
 
 #endif

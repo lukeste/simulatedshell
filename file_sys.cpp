@@ -69,7 +69,7 @@ void base_file::writefile(const vector<string>&) {
     throw file_error("is a " + error_file_type());
 }
 
-void base_file::remove(const string&, bool) {
+void base_file::remove(const ptr_map::iterator, bool) {
     throw file_error("is a " + error_file_type());
 }
 
@@ -81,18 +81,16 @@ inode_ptr base_file::mkfile(const string&) {
     throw file_error("is a " + error_file_type());
 }
 
-map<string, inode_ptr>& base_file::get_dirents() {
+ptr_map& base_file::get_dirents() {
     throw file_error("is a " + error_file_type());
 }
 
 size_t plain_file::size() const {
     size_t size = 0;
-    // size of all words
     for (const string& word : data)
-        size += word.size();
-    // plus all spaces
+        size += word.size(); // size of all words
     if (data.size() > 0)
-        size += data.size() - 1;
+        size += data.size() - 1; // plus all spaces
     return size;
 }
 
@@ -106,22 +104,16 @@ void plain_file::writefile(const vector<string>& new_data) {
 
 size_t directory::size() const { return dirents.size(); }
 
-void directory::remove(const string& filename, bool recursive) {
-    const auto it = dirents.find(filename);
-    if (it == dirents.end()) {
-        throw file_error("rm: " + filename + ": No such file or directory");
-    } else {
-        try {
-            it->second->get_contents()
-                ->get_dirents(); // throws file_error if not directory type
-            if (!recursive) {
-                cerr << "rm: " << filename << ": is a directory" << endl;
-                return;
-            }
-        } catch (file_error&) {
+void directory::remove(const ptr_map::iterator file, bool recursive) {
+    try {
+        auto dir = file->second->get_contents()->get_dirents();
+        if (!recursive) {
+            cerr << "rm: " << file->first << ": is a directory" << endl;
+            return;
         }
+    } catch (file_error&) {
     }
-    dirents.erase(it);
+    dirents.erase(file);
 }
 
 inode_ptr directory::mkdir(const string& dirname) {
@@ -138,4 +130,4 @@ inode_ptr directory::mkfile(const string& filename) {
     return new_file;
 }
 
-map<string, inode_ptr>& directory::get_dirents() { return dirents; }
+ptr_map& directory::get_dirents() { return dirents; }
