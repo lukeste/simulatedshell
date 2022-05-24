@@ -20,16 +20,6 @@ vector<string> split(const string& line, const string& delimiters) {
     return words;
 }
 
-template <typename item_t>
-ostream& operator<<(ostream& out, const vector<item_t>& vec) {
-    string space = "";
-    for (const auto& item : vec) {
-        out << space << item;
-        space = " ";
-    }
-    return out;
-}
-
 bool is_number(const string& s) {
     return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }
