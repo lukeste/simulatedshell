@@ -98,7 +98,7 @@ class directory : public base_file {
 
   public:
     virtual size_t size() const override;
-    virtual void remove(const ptr_map::iterator filename,
+    virtual void remove(const ptr_map::iterator itor,
                         bool recursive) override;
     virtual inode_ptr mkdir(const string& dirname) override;
     virtual inode_ptr mkfile(const string& filename) override;
