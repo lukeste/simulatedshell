@@ -5,7 +5,6 @@
 using namespace std;
 
 #include "file_sys.h"
-#include "util.h"
 
 using cmd_fn = void (*)(inode_state& state, const vector<string>& words);
 using cmd_hash = unordered_map<string, cmd_fn>;
@@ -18,7 +17,6 @@ class command_error : public runtime_error {
 void fn_cat(inode_state& state, const vector<string>& words);
 void fn_cd(inode_state& state, const vector<string>& words);
 void fn_echo(inode_state& state, const vector<string>& words);
-void fn_exit(inode_state& state, const vector<string>& words);
 void fn_ls(inode_state& state, const vector<string>& words);
 void fn_make(inode_state& state, const vector<string>& words);
 void fn_mkdir(inode_state& state, const vector<string>& words);

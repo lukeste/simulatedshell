@@ -9,8 +9,6 @@
 
 using namespace std;
 
-#include "util.h"
-
 enum class file_type { PLAIN_TYPE, DIRECTORY_TYPE };
 class inode;
 class base_file;
