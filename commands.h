@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "file_sys.h"
+#include "util.h"
 
 using cmd_fn = void (*)(inode_state& state, const vector<string>& words);
 using cmd_hash = unordered_map<string, cmd_fn>;
