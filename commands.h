@@ -27,6 +27,4 @@ void fn_rm(inode_state& state, const vector<string>& words);
 
 cmd_fn find_cmd_fn(const string& command);
 
-class shell_exit : public exception {};
-
 #endif
