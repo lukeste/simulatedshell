@@ -10,8 +10,6 @@ using namespace std;
 #include "util.h"
 
 int main(int, char** argv) {
-    cout << boolalpha; // print false or true instead of 0 or 1.
-    cerr << boolalpha;
     cout << argv[0] << " build " << __DATE__ << " " << __TIME__ << endl;
     inode_state state;
     try {
