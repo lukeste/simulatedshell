@@ -20,6 +20,13 @@ vector<string> split(const string& line, const string& delimiters) {
     return words;
 }
 
+const string join(const vector<string>& words, const string& delimiter) {
+    string result = "";
+    for (size_t i = 0; i < words.size() - 1; ++i)
+        result += words[i] + delimiter;
+    return result + words.back();
+}
+
 bool is_number(const string& s) {
     return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }
