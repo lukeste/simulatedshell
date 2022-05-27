@@ -23,10 +23,10 @@ int main(int, char** argv) {
                 break;
             }
             // split the line into words and lookup the function
-            vector<string> words = split(line, " \t");
-            if (words.at(0) == "#")
+            const vector<string> words = split(line, " \t");
+            if (words.size() == 0 || words[0] == "#")
                 continue;
-            cmd_fn fn = find_cmd_fn(words.at(0));
+            cmd_fn fn = find_cmd_fn(words[0]);
             fn(state, words);
         } catch (file_error& error) {
             cerr << error.what() << endl;
