@@ -1,9 +1,10 @@
 #include "commands.h"
 
-const cmd_hash cmd_map{
-    {"cat", fn_cat},       {"cd", fn_cd},     {"echo", fn_echo},
-    {"ls", fn_ls},         {"make", fn_make}, {"mkdir", fn_mkdir},
-    {"prompt", fn_prompt}, {"pwd", fn_pwd},   {"rm", fn_rm}, {"exit", fn_exit}};
+const cmd_hash cmd_map{{"cat", fn_cat},       {"cd", fn_cd},
+                       {"echo", fn_echo},     {"ls", fn_ls},
+                       {"make", fn_make},     {"mkdir", fn_mkdir},
+                       {"prompt", fn_prompt}, {"pwd", fn_pwd},
+                       {"rm", fn_rm},         {"exit", fn_exit}};
 
 cmd_fn find_cmd_fn(const string& cmd) {
     const auto result = cmd_map.find(cmd);
@@ -18,6 +19,14 @@ command_error::command_error(const string& what) : runtime_error(what) {}
 // Some useful helper functions
 // -----------------------------
 namespace {
+/**
+ * @brief walks down a filepath, opening each directory along the way
+ *
+ * @param cmd command from which the function was called
+ * @param cwd pointer to the cwd
+ * @param path the path to the resquested file
+ * @return inode_ptr to the parent directory of the requested resource
+ */
 inode_ptr resolve_path(const string& cmd, inode_ptr cwd,
                        const vector<string>& path) {
     for (size_t i = 0; i < path.size() - 1; ++i) {
@@ -33,6 +42,12 @@ inode_ptr resolve_path(const string& cmd, inode_ptr cwd,
     return cwd;
 }
 
+/**
+ * @brief a print function for ls
+ *
+ * @param path path of directory being printed
+ * @param dir reference to the directory entries
+ */
 void print_ls(const string& path, const ptr_map& dir) {
     if (path.size() == 0)
         cout << "/:" << endl;
@@ -50,6 +65,13 @@ void print_ls(const string& path, const ptr_map& dir) {
     }
 }
 
+/**
+ * @brief recurses through a directory and its subdirectories, printing in
+ * pre-order
+ *
+ * @param path path to directory
+ * @param dir reference to the directory entries
+ */
 void ls_recurse(const string& path, const ptr_map& dir) {
     print_ls(path, dir);
     if (dir.size() == 2)
@@ -67,6 +89,12 @@ void ls_recurse(const string& path, const ptr_map& dir) {
     }
 }
 
+/**
+ * @brief recurses through a directory in post-order, removing each subdirectory
+ * and its contents
+ *
+ * @param dir pointer to the directory to be removed
+ */
 void rm_recurse(base_file_ptr dir) {
     // base case, "empty" directory
     if (dir->get_dirents().size() == 2) {
@@ -221,9 +249,8 @@ void fn_mkdir(inode_state& state, const vector<string>& words) {
 
 void fn_prompt(inode_state& state, const vector<string>& words) {
     string new_prompt;
-    for (size_t i = 1; i < words.size(); ++i) {
+    for (size_t i = 1; i < words.size(); ++i)
         new_prompt += words[i] + " ";
-    }
     state.set_prompt(new_prompt);
 }
 
@@ -263,6 +290,4 @@ void fn_rm(inode_state& state, const vector<string>& words) {
     curr->get_contents()->remove(it, recur);
 }
 
-void fn_exit(inode_state&, const vector<string>&) {
-    throw shell_exit();
-}
+void fn_exit(inode_state&, const vector<string>&) { throw shell_exit(); }
