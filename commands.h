@@ -24,7 +24,10 @@ void fn_mkdir(inode_state& state, const vector<string>& words);
 void fn_prompt(inode_state& state, const vector<string>& words);
 void fn_pwd(inode_state& state, const vector<string>& words);
 void fn_rm(inode_state& state, const vector<string>& words);
+void fn_exit(inode_state& state, const vector<string>& words);
 
 cmd_fn find_cmd_fn(const string& command);
+
+class shell_exit : public exception {};
 
 #endif

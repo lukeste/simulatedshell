@@ -3,7 +3,7 @@
 const cmd_hash cmd_map{
     {"cat", fn_cat},       {"cd", fn_cd},     {"echo", fn_echo},
     {"ls", fn_ls},         {"make", fn_make}, {"mkdir", fn_mkdir},
-    {"prompt", fn_prompt}, {"pwd", fn_pwd},   {"rm", fn_rm}};
+    {"prompt", fn_prompt}, {"pwd", fn_pwd},   {"rm", fn_rm}, {"exit", fn_exit}};
 
 cmd_fn find_cmd_fn(const string& cmd) {
     const auto result = cmd_map.find(cmd);
@@ -261,4 +261,8 @@ void fn_rm(inode_state& state, const vector<string>& words) {
         }
     }
     curr->get_contents()->remove(it, recur);
+}
+
+void fn_exit(inode_state&, const vector<string>&) {
+    throw shell_exit();
 }
