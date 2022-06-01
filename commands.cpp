@@ -128,12 +128,7 @@ void fn_cat(inode_state& state, const vector<string>& words) {
         try {
             inode_ptr file =
                 state.get_cwd()->get_contents()->get_dirents().at(words[i]);
-            string space = "";
-            for (const string& word : file->get_contents()->readfile()) {
-                cout << space << word;
-                space = " ";
-            }
-            cout << endl;
+            cout << join(file->get_contents()->readfile(), " ") << endl;
         } catch (out_of_range&) {
             throw command_error(words[0] + ": " + words[i] +
                                 ": No such file or directory");
@@ -167,12 +162,7 @@ void fn_cd(inode_state& state, const vector<string>& words) {
 }
 
 void fn_echo(inode_state&, const vector<string>& words) {
-    string space = "";
-    for (auto it = words.cbegin() + 1; it != words.cend(); ++it) {
-        cout << space << *it;
-        space = " ";
-    }
-    cout << endl;
+    cout << join(words.cbegin() + 1, words.cend(), " ") << endl;
 }
 
 void fn_ls(inode_state& state, const vector<string>& words) {
@@ -248,9 +238,7 @@ void fn_mkdir(inode_state& state, const vector<string>& words) {
 }
 
 void fn_prompt(inode_state& state, const vector<string>& words) {
-    string new_prompt;
-    for (size_t i = 1; i < words.size(); ++i)
-        new_prompt += words[i] + " ";
+    string new_prompt = join(words.cbegin() + 1, words.cend(), " ") + " ";
     state.set_prompt(new_prompt);
 }
 

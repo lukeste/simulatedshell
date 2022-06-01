@@ -34,12 +34,7 @@ void inode_state::cwd_pop(bool empty) {
         path.pop_back(); // move up one level
 }
 
-const string inode_state::cwd_str() const {
-    string full_path = "";
-    for (const string& piece : path)
-        full_path += "/" + piece;
-    return path.size() == 0 ? "/" : full_path;
-}
+const string inode_state::cwd_str() const { return "/" + join(path, "/"); }
 
 inode::inode(file_type type) : inode_num(next_inode_num++) {
     switch (type) {
