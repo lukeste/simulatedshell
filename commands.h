@@ -88,6 +88,19 @@ void fn_rm(inode_state& state, const vector<string>& words);
 void fn_exit(inode_state& state, const vector<string>& words);
 
 /**
+ * @brief prints a help messasge with a list of valid commands
+ * 
+ */
+void fn_help(inode_state& state, const vector<string>& words);
+
+/**
+ * @brief create a new empty file
+ * 
+ * @param words words[1] is the filename
+ */
+void fn_touch(inode_state& state, const vector<string>& words);
+
+/**
  * @brief find the appropriate command function
  * 
  * @param command requested command

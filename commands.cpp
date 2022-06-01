@@ -1,10 +1,10 @@
 #include "commands.h"
 
-const cmd_hash cmd_map{{"cat", fn_cat},       {"cd", fn_cd},
-                       {"echo", fn_echo},     {"ls", fn_ls},
-                       {"make", fn_make},     {"mkdir", fn_mkdir},
-                       {"prompt", fn_prompt}, {"pwd", fn_pwd},
-                       {"rm", fn_rm},         {"exit", fn_exit}};
+const cmd_hash cmd_map{
+    {"cat", fn_cat},       {"cd", fn_cd},     {"echo", fn_echo},
+    {"ls", fn_ls},         {"make", fn_make}, {"mkdir", fn_mkdir},
+    {"prompt", fn_prompt}, {"pwd", fn_pwd},   {"rm", fn_rm},
+    {"exit", fn_exit},     {"help", fn_help}, {"touch", fn_touch}};
 
 cmd_fn find_cmd_fn(const string& cmd) {
     const auto result = cmd_map.find(cmd);
@@ -291,3 +291,31 @@ void fn_rm(inode_state& state, const vector<string>& words) {
 }
 
 void fn_exit(inode_state&, const vector<string>&) { throw shell_exit(); }
+
+void fn_touch(inode_state& state, const vector<string>& words) {
+    if (words.size() == 1)
+        throw command_error(words[0] + ": must specify filename");
+    if (words[1][0] < '.')
+        throw command_error(words[0] + ": files cannot begin with \'" +
+                            words[1][0] + "\'");
+    inode_ptr new_file = state.get_cwd()->get_contents()->mkfile(words[1]);
+}
+
+// 'cat', 'cd', 'echo', 'exit', 'help', 'ls', 'make', 'mkdir', 'prompt', 'pwd', 'rm'
+void fn_help(inode_state&, const vector<string>&) {
+    const char help_msg[] = R"(
+    cat pathname            - Print the contents of one or several files
+    cd [pathname]           - Change directory
+    echo [text]             - Echo text
+    exit                    - Exit the shell
+    help                    - Print this message
+    ls [-r] [pathname]      - Print the contents of a directory
+    make pathname [text]    - Create a file with optional contents
+    mkdir pathname          - Create a directory
+    prompt text             - Change the shell prompt
+    pwd                     - Print the current working directory
+    rm [-r] pathname        - Remove a file or directory
+    touch pathname          - Create an empty file
+    )";
+    cout << help_msg << endl;
+}
