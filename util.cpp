@@ -21,10 +21,20 @@ vector<string> split(const string& line, const string& delimiters) {
 }
 
 const string join(const vector<string>& words, const string& delimiter) {
-    string result = "";
-    for (size_t i = 0; i < words.size() - 1; ++i)
-        result += words[i] + delimiter;
-    return result + words.back();
+    string result{};
+    for (auto it = words.cbegin(); it != words.cend() - 1; ++it)
+        result += *it + delimiter;
+    return result + *words.crbegin();
+}
+
+const string join(vector<string>::const_iterator first,
+                  vector<string>::const_iterator last,
+                  const string& delimiter) {
+    string result{};
+    for (auto it = first; it != last - 1; ++it) {
+        result += *it + delimiter;
+    }
+    return result + *(last-1);
 }
 
 bool is_number(const string& s) {

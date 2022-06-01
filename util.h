@@ -14,6 +14,11 @@ vector<string> split(const string& line, const string& delimiter);
 // join a vector<string>
 const string join(const vector<string>& words, const string& delimiter);
 
+// join a vector range
+const string join(vector<string>::const_iterator first,
+                  vector<string>::const_iterator last,
+                  const string& delimiter);
+
 // checks if s is a number
 bool is_number(const string& s);
 
