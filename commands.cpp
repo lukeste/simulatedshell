@@ -301,7 +301,6 @@ void fn_touch(inode_state& state, const vector<string>& words) {
     inode_ptr new_file = state.get_cwd()->get_contents()->mkfile(words[1]);
 }
 
-// 'cat', 'cd', 'echo', 'exit', 'help', 'ls', 'make', 'mkdir', 'prompt', 'pwd', 'rm'
 void fn_help(inode_state&, const vector<string>&) {
     const char help_msg[] = R"(
     cat pathname            - Print the contents of one or several files
