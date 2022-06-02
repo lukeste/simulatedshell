@@ -100,14 +100,9 @@ void plain_file::writefile(const vector<string>& new_data) {
 size_t directory::size() const { return dirents.size(); }
 
 void directory::remove(const ptr_map::iterator file, bool recursive) {
-    try {
-        auto dir = file->second->get_contents()->get_dirents();
-        if (!recursive) {
-            cerr << "rm: " << file->first << ": is a directory" << endl;
-            return;
-        }
-    } catch (file_error&) {
-    }
+    if (dynamic_pointer_cast<directory>(file->second->get_contents()) &&
+        !recursive)
+        throw file_error("rm: " + file->first + ": is a directory");
     dirents.erase(file);
 }
 
