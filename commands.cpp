@@ -25,10 +25,10 @@ namespace {
  * @param cmd command from which the function was called
  * @param cwd pointer to the cwd
  * @param path the path to the resquested file
- * @return inode_ptr to the parent directory of the requested resource
+ * @return base_file_ptr to the parent directory of the requested resource
  */
-inode_ptr resolve_path(const string& cmd, inode_ptr cwd,
-                       const vector<string>& path) {
+base_file_ptr resolve_path(const string& cmd, inode_ptr cwd,
+                           const vector<string>& path) {
     for (size_t i = 0; i < path.size() - 1; ++i) {
         try {
             cwd = cwd->get_contents()->get_dirents().at(path[i]);
@@ -39,7 +39,7 @@ inode_ptr resolve_path(const string& cmd, inode_ptr cwd,
                                 ": No such file or directory");
         }
     }
-    return cwd;
+    return cwd->get_contents();
 }
 
 /**
@@ -168,6 +168,7 @@ void fn_echo(inode_state&, const vector<string>& words) {
 void fn_ls(inode_state& state, const vector<string>& words) {
     vector<string> path;
     bool recur = false;
+    // parse arguments
     if (words.size() == 1) {
         print_ls(state.cwd_str(),
                  state.get_cwd()->get_contents()->get_dirents());
@@ -186,6 +187,7 @@ void fn_ls(inode_state& state, const vector<string>& words) {
         throw command_error(words[0] + ": Too many arguments");
     }
     if (path.size() == 0) {
+        // ls with no args, proceed with state's dirents
         if (recur)
             ls_recurse("", state.get_root()->get_contents()->get_dirents());
         else
@@ -193,18 +195,17 @@ void fn_ls(inode_state& state, const vector<string>& words) {
                      state.get_cwd()->get_contents()->get_dirents());
         return;
     }
-    inode_ptr parent_dir = resolve_path("ls", state.get_cwd(), path);
+    base_file_ptr parent_dir = resolve_path("ls", state.get_cwd(), path);
     try {
-        const ptr_map& dir = parent_dir->get_contents()
-                                 ->get_dirents()
+        // get reference to requested directory
+        const ptr_map& dir = parent_dir->get_dirents()
                                  .at(path.back())
                                  ->get_contents()
                                  ->get_dirents();
-        if (recur) {
+        if (recur)
             ls_recurse(state.cwd_str() + words[2] + "/", dir);
-        } else {
+        else
             print_ls(state.cwd_str() + words[1], dir);
-        }
     } catch (file_error&) {
         // file is a plain_file, print out path
         if (recur)
@@ -263,9 +264,9 @@ void fn_rm(inode_state& state, const vector<string>& words) {
     }
     if (path.back() == "." || path.back() == "..")
         throw command_error(words[0] + ": \".\" and \"..\" may not be removed");
-    inode_ptr curr = resolve_path("rm", state.get_cwd(), path);
-    auto it = curr->get_contents()->get_dirents().find(path.back());
-    if (it == curr->get_contents()->get_dirents().end()) {
+    base_file_ptr curr = resolve_path("rm", state.get_cwd(), path);
+    auto it = curr->get_dirents().find(path.back());
+    if (it == curr->get_dirents().end()) {
         throw command_error(words[0] + ": " + path.back() +
                             ": No such file or directory");
     }
@@ -275,7 +276,7 @@ void fn_rm(inode_state& state, const vector<string>& words) {
         } catch (file_error&) {
         }
     }
-    curr->get_contents()->remove(it, recur);
+    curr->remove(it, recur);
 }
 
 void fn_exit(inode_state&, const vector<string>&) { throw shell_exit(); }
