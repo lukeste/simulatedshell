@@ -19,7 +19,4 @@ const string join(vector<string>::const_iterator first,
                   vector<string>::const_iterator last,
                   const string& delimiter);
 
-// checks if s is a number
-bool is_number(const string& s);
-
 #endif

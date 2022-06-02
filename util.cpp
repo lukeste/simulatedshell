@@ -40,7 +40,3 @@ const string join(vector<string>::const_iterator first,
     }
     return result + *(last - 1);
 }
-
-bool is_number(const string& s) {
-    return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
-}
