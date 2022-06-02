@@ -53,14 +53,14 @@ void print_ls(const string& path, const ptr_map& dir) {
         cout << "/:" << endl;
     else
         cout << path << ":" << endl;
-    for (const auto& file : dir) {
-        cout << setw(6) << file.second->get_inode_num();
-        cout << setw(6) << file.second->get_contents()->size();
+    for (const auto& [filename, node] : dir) {
+        cout << setw(6) << node->get_inode_num();
+        cout << setw(6) << node->get_contents()->size();
         try {
-            file.second->get_contents()->get_dirents();
-            cout << "  " << file.first << "/" << endl;
+            node->get_contents()->get_dirents();
+            cout << "  " << filename << "/" << endl;
         } catch (file_error&) {
-            cout << "  " << file.first << endl;
+            cout << "  " << filename << endl;
         }
     }
 }
@@ -76,15 +76,13 @@ void ls_recurse(const string& path, const ptr_map& dir) {
     print_ls(path, dir);
     if (dir.size() == 2)
         return;
-    for (const auto& node : dir) {
+    for (const auto& [filename, node] : dir) {
         try {
-            node.second->get_contents()->get_dirents();
-            if (node.first != "." && node.first != "..") {
-                const string next_path = path + "/" + node.first;
-                ls_recurse(next_path,
-                           node.second->get_contents()->get_dirents());
-            }
-        } catch (file_error&) {
+            node->get_contents()->get_dirents();
+            if (filename != "." && filename != "..")
+                ls_recurse(path + "/" + filename,
+                           node->get_contents()->get_dirents());
+        } catch (file_error&) { // plain_file
         }
     }
 }
@@ -103,11 +101,10 @@ void rm_recurse(base_file_ptr dir) {
         return;
     }
     // enter all directories, excluding '.' and '..'
-    for (auto it = dir->get_dirents().cbegin(); it != dir->get_dirents().cend();
-         ++it) {
-        if (it->first != "." && it->first != "..") {
+    for (const auto& [filename, node] : dir->get_dirents()) {
+        if (filename != "." && filename != "..") {
             try {
-                rm_recurse(it->second->get_contents());
+                rm_recurse(node->get_contents());
             } catch (file_error&) {
             }
         }
@@ -145,19 +142,18 @@ void fn_cd(inode_state& state, const vector<string>& words) {
     if (words.size() == 1 || words[1] == "/") {
         state.set_cwd(state.get_root());
         state.cwd_pop(true);
-        return;
-    }
-    try {
-        inode_ptr dir =
-            state.get_cwd()->get_contents()->get_dirents().at(words[1]);
-        state.set_cwd(dir);
-        if (words[1] == "..")
-            state.cwd_pop(false);
-        else if (words[1] != ".") // don't push '.' to cwd
-            state.cwd_push(words[1]);
-    } catch (out_of_range&) {
-        throw command_error(words[0] + ": " + words[1] +
-                            ": No such file or directory");
+    } else {
+        try {
+            state.set_cwd(
+                state.get_cwd()->get_contents()->get_dirents().at(words[1]));
+            if (words[1] == "..")
+                state.cwd_pop(false);
+            else if (words[1] != ".") // don't push '.' to cwd
+                state.cwd_push(words[1]);
+        } catch (out_of_range&) {
+            throw command_error(words[0] + ": " + words[1] +
+                                ": No such file or directory");
+        }
     }
 }
 
@@ -187,34 +183,34 @@ void fn_ls(inode_state& state, const vector<string>& words) {
         throw command_error(words[0] + ": Too many arguments");
     }
     if (path.size() == 0) {
-        // ls with no args, proceed with state's dirents
+        // ls with no args, proceed with cwd dirents
         if (recur)
-            ls_recurse("", state.get_root()->get_contents()->get_dirents());
+            ls_recurse("", state.get_cwd()->get_contents()->get_dirents());
         else
             print_ls(state.cwd_str(),
                      state.get_cwd()->get_contents()->get_dirents());
-        return;
-    }
-    base_file_ptr parent_dir = resolve_path("ls", state.get_cwd(), path);
-    try {
-        // get reference to requested directory
-        const ptr_map& dir = parent_dir->get_dirents()
-                                 .at(path.back())
-                                 ->get_contents()
-                                 ->get_dirents();
-        if (recur)
-            ls_recurse(state.cwd_str() + words[2] + "/", dir);
-        else
-            print_ls(state.cwd_str() + words[1], dir);
-    } catch (file_error&) {
-        // file is a plain_file, print out path
-        if (recur)
-            cout << words[2] << endl;
-        else
-            cout << words[1] << endl;
-    } catch (out_of_range&) {
-        throw command_error(words[0] + ": " + path.back() +
-                            ": No such file or directory");
+    } else {
+        base_file_ptr parent_dir = resolve_path("ls", state.get_cwd(), path);
+        try {
+            // get reference to requested directory
+            const ptr_map& dir = parent_dir->get_dirents()
+                                     .at(path.back())
+                                     ->get_contents()
+                                     ->get_dirents();
+            if (recur)
+                ls_recurse(state.cwd_str() + words[2] + "/", dir);
+            else
+                print_ls(state.cwd_str() + words[1], dir);
+        } catch (file_error&) {
+            // file is a plain_file, print out path
+            if (recur)
+                cout << words[2] << endl;
+            else
+                cout << words[1] << endl;
+        } catch (out_of_range&) {
+            throw command_error(words[0] + ": " + path.back() +
+                                ": No such file or directory");
+        }
     }
 }
 
@@ -239,8 +235,7 @@ void fn_mkdir(inode_state& state, const vector<string>& words) {
 }
 
 void fn_prompt(inode_state& state, const vector<string>& words) {
-    string new_prompt = join(words.cbegin() + 1, words.cend(), " ") + " ";
-    state.set_prompt(new_prompt);
+    state.set_prompt(join(words.cbegin() + 1, words.cend(), " ") + " ");
 }
 
 void fn_pwd(inode_state& state, const vector<string>&) {
@@ -264,9 +259,9 @@ void fn_rm(inode_state& state, const vector<string>& words) {
     }
     if (path.back() == "." || path.back() == "..")
         throw command_error(words[0] + ": \".\" and \"..\" may not be removed");
-    base_file_ptr curr = resolve_path("rm", state.get_cwd(), path);
-    auto it = curr->get_dirents().find(path.back());
-    if (it == curr->get_dirents().end()) {
+    base_file_ptr parent_dir = resolve_path("rm", state.get_cwd(), path);
+    auto it = parent_dir->get_dirents().find(path.back());
+    if (it == parent_dir->get_dirents().end()) {
         throw command_error(words[0] + ": " + path.back() +
                             ": No such file or directory");
     }
@@ -276,18 +271,14 @@ void fn_rm(inode_state& state, const vector<string>& words) {
         } catch (file_error&) {
         }
     }
-    curr->remove(it, recur);
+    parent_dir->remove(it, recur);
 }
 
 void fn_exit(inode_state&, const vector<string>&) { throw shell_exit(); }
 
 void fn_touch(inode_state& state, const vector<string>& words) {
-    if (words.size() == 1)
-        throw command_error(words[0] + ": must specify filename");
-    if (words[1][0] < '.')
-        throw command_error(words[0] + ": files cannot begin with \'" +
-                            words[1][0] + "\'");
-    inode_ptr new_file = state.get_cwd()->get_contents()->mkfile(words[1]);
+    for (auto it = words.cbegin() + 1; it != words.cend(); ++it)
+        fn_make(state, {words[0], *it});
 }
 
 void fn_help(inode_state&, const vector<string>&) {
