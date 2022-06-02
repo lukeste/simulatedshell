@@ -231,7 +231,8 @@ void fn_mkdir(inode_state& state, const vector<string>& words) {
         throw command_error(words[0] +
                             ": directory names cannot begin with \'" +
                             words[1][0] + "\'");
-    state.get_cwd()->get_contents()->mkdir(words[1]);
+    for (auto it = words.cbegin() + 1; it != words.cend(); ++it)
+        state.get_cwd()->get_contents()->mkdir(*it);
 }
 
 void fn_prompt(inode_state& state, const vector<string>& words) {
