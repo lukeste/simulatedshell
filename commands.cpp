@@ -144,8 +144,10 @@ void fn_cd(inode_state& state, const vector<string>& words) {
         state.cwd_pop(true);
     } else {
         try {
-            state.set_cwd(
-                state.get_cwd()->get_contents()->get_dirents().at(words[1]));
+            const auto& dir =
+                state.get_cwd()->get_contents()->get_dirents().at(words[1]);
+            dir->get_contents()->get_dirents();
+            state.set_cwd(dir);
             if (words[1] == "..")
                 state.cwd_pop(false);
             else if (words[1] != ".") // don't push '.' to cwd
@@ -153,6 +155,8 @@ void fn_cd(inode_state& state, const vector<string>& words) {
         } catch (out_of_range&) {
             throw command_error(words[0] + ": " + words[1] +
                                 ": No such file or directory");
+        } catch (file_error&) {
+            throw command_error(words[0] + ": not a directory: " + words[1]);
         }
     }
 }
